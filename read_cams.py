@@ -1,4 +1,5 @@
 import gdal
+import numpy as np
 
 gdal.UseExceptions()
 
@@ -28,14 +29,15 @@ def get_var(tile, var):
     fname = filename(tile, var)
     ds = gdal.Open(fname)
     #loop through bands?
-    #for step in xrange(ds.RasterCount):
-    step = 20
-    # read data
-    band = ds.GetRasterBand(step)
-    #Data scale and offset
-    data = scaled_data(band)
-    #convert units
-    data = convert_units(data, var)
+    data = np.zeros((ds.RasterCount, ds.RasterXSize, ds.RasterYSize))
+    for i in xrange(ds.RasterCount):
+        step = i+1
+        # read data
+        band = ds.GetRasterBand(step)
+        #Data scale and offset
+        banddata = scaled_data(band)
+        #convert units
+        data[i,...] = convert_units(banddata, var)
     return data
 
 def read_cams(tile = 'h17v03'):
