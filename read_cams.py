@@ -22,7 +22,8 @@ def convert_units(data, var):
     if var == 'gtco3':
         # source in kg m-2, want in atm-cm
         data = data/2.1415e-2
-    #All other variables returned unchanged.
+    # All other variables returned unchanged.
+    # AOD550 is unitless. sf is in m of water equivilent
     return data
 
 def get_var(tile, var):
@@ -31,7 +32,7 @@ def get_var(tile, var):
     #loop through bands?
     data = np.zeros((ds.RasterCount, ds.RasterXSize, ds.RasterYSize))
     for i in xrange(ds.RasterCount):
-        step = i+1
+        step = i+1 #gdal get raster band counts from 1, numpy from 0.
         # read data
         band = ds.GetRasterBand(step)
         #Data scale and offset
@@ -40,9 +41,11 @@ def get_var(tile, var):
         data[i,...] = convert_units(banddata, var)
     return data
 
+
+
 def read_cams(tile = 'h17v03'):
     # Open file
-    vars = ['tcwv', 'gtco3']
+    vars = ['tcwv', 'gtco3', 'aod550', 'sf']
     data = {}
     for var in vars:
         print var
