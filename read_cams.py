@@ -1,5 +1,6 @@
 import gdal
 import numpy as np
+import datetime as dt
 
 gdal.UseExceptions()
 
@@ -8,7 +9,12 @@ def filename(tile, var):
     return fname
 
 def scaled_data(band):
-    ''' read data array from band an apply the scale and offset'''
+    ''' read data array from band an apply the scale and offset
+    input:
+        band,  an osgeo.gdal.Band
+    returns:
+        data, a numpy array of the correctly scaled band data.
+    '''
     metadata = band.GetMetadata()
     scale = float(metadata['scale_factor'])
     offset = float(metadata['add_offset'])
@@ -26,6 +32,26 @@ def convert_units(data, var):
     # AOD550 is unitless. sf is in m of water equivilent
     return data
 
+def convertdatetime(netcdftime):
+    ''' Convert the netcdf time from hours since 1900-01-01 00:00:0.0
+    to a datetime object
+    input:
+        netcdftime date and time in hours since  1900-01-01 00:00:0.0
+    output:
+        date and time in datetime object
+    '''
+    origin = dt.datetime(1900,1,1,0,0,0) #netcdf times are hours since this time
+    hours = dt.timedelta(hours=netcdftime)
+    return origin + hours
+
+def get_timestamps(ds):
+    times = ds.GetMetadata_Dict()['NETCDF_DIM_time_VALUES']
+    # the metadata contains a string of comma separated values.
+    # enclosed in curly braces.
+    times = times[1:-1].split(',')
+    datetimes = [convertdatetime(int(t)) for t in times]
+    return datetimes
+
 def get_var(tile, var):
     fname = filename(tile, var)
     ds = gdal.Open(fname)
@@ -39,18 +65,18 @@ def get_var(tile, var):
         banddata = scaled_data(band)
         #convert units
         data[i,...] = convert_units(banddata, var)
-    return data
-
-
+    datetimes = get_timestamps(ds)
+    return data, datetimes
 
 def read_cams(tile = 'h17v03'):
     # Open file
     vars = ['tcwv', 'gtco3', 'aod550', 'sf']
     data = {}
+    times = {}
     for var in vars:
         print var
-        data[var] = get_var(tile, var)
-    return data
+        data[var], times[var] = get_var(tile, var)
+    return data, times
 
 
 def main():
