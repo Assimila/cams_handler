@@ -68,7 +68,7 @@ def get_var(tile, var):
     datetimes = get_timestamps(ds)
     return data, datetimes
 
-def read_cams(tile = 'h17v03'):
+def read_cams(tile = 'h17v05'):
     # Open file
     vars = ['tcwv', 'gtco3', 'aod550', 'sf']
     data = {}
