@@ -1,12 +1,12 @@
 import gdal
 import numpy as np
 import datetime as dt
+import CAMS_utils
 
 gdal.UseExceptions()
 
 def filename(tile, var):
-    fname = '{var}_{tile}_sin_500m.tif'.format(var=var, tile=tile)
-    return fname
+    return CAMS_utils.reproj_geotiff_filename(tile, var)
 
 def scaled_data(band):
     ''' read data array from band an apply the scale and offset
@@ -70,7 +70,7 @@ def get_var(tile, var):
 
 def read_cams(tile = 'h17v05'):
     # Open file
-    vars = ['tcwv', 'gtco3', 'aod550', 'sf']
+    vars = CAMS_utils.parameters()
     data = {}
     times = {}
     for var in vars:

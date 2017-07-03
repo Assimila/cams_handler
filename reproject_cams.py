@@ -1,12 +1,14 @@
 import gdal
 import subprocess
+import CAMS_utils
+
+gdal.UseExceptions()
 
 def input_filename(tile):
-    return  "atmosvar_fc.nc"
+    return  CAMS_utils.nc_filename(tile)
 
 def output_filename(tile, var):
-    fname = '{var}_{tile}_sin_500m.tif'.format(var=var, tile=tile)
-    return fname
+    return CAMS_utils.reproj_geotiff_filename(tile, var)
 
 def get_tile_extent(MOD09band):
     ds = gdal.Open(MOD09band)
@@ -34,7 +36,7 @@ def reproject_cams(MOD09band, tile = 'h17v05'):
     #Get extent and resolution of modis file
     xmin, xmax, xres, ymin, ymax, yres = get_tile_extent(MOD09band)
     # Loop through variables
-    vars = ['tcwv', 'gtco3', 'aod550', 'sf']
+    vars =  CAMS_utils.parameters()
     for var in vars:
         #Get input file 
         infname = input_filename(tile)
