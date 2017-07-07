@@ -11,13 +11,7 @@ def output_filename(tile, var):
     return CAMS_utils.reproj_geotiff_filename(tile, var)
 
 def get_tile_extent(MOD09band):
-    ds = gdal.Open(MOD09band)
-    (xmin, xres, xrot, ymax, yrot, yres) = ds.GetGeoTransform()
-    xsize = ds.RasterXSize
-    ysize = ds.RasterYSize
-    xmax = xmin + xsize * xres
-    ymin = ymax + ysize * yres
-    return  xmin, xmax, xres, ymin, ymax, yres
+    return  CAMS_utils.get_tile_extent(MOD09band)
 
 def reproject(var, infname, outfname, xmin, xmax, xres, ymin, ymax, yres):
     args = ['./reprojectCAMS.sh', '-i', infname, 
@@ -29,8 +23,6 @@ def reproject(var, infname, outfname, xmin, xmax, xres, ymin, ymax, yres):
             '--ymax', str(ymax)]
     print args
     subprocess.call(args)
-
-
 
 def reproject_cams(MOD09band, tile = 'h17v05'):
     #Get extent and resolution of modis file
