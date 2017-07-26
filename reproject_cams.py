@@ -1,14 +1,15 @@
 import gdal
 import subprocess
 import CAMS_utils
+import datetime as dt
 
 gdal.UseExceptions()
 
-def input_filename(tile):
-    return  CAMS_utils.nc_filename(tile)
+def input_filename(tile, start, end):
+    return  CAMS_utils.nc_filename(tile, start, end)
 
-def output_filename(tile, var):
-    return CAMS_utils.reproj_geotiff_filename(tile, var)
+def output_filename(tile, start, end, var):
+    return CAMS_utils.reproj_geotiff_filename(tile, start, end, var)
 
 def get_tile_extent(MOD09band):
     return  CAMS_utils.get_tile_extent(MOD09band)
@@ -24,16 +25,16 @@ def reproject(var, infname, outfname, xmin, xmax, xres, ymin, ymax, yres):
     print args
     subprocess.call(args)
 
-def reproject_cams(MOD09band, tile = 'h17v05'):
+def reproject_cams(MOD09band, startdate, enddate, tile = 'h17v05'):
     #Get extent and resolution of modis file
     xmin, xmax, xres, ymin, ymax, yres = get_tile_extent(MOD09band)
     # Loop through variables
     vars =  CAMS_utils.parameters()
     for var in vars:
         #Get input file 
-        infname = input_filename(tile)
+        infname = input_filename(tile, startdate, enddate)
         #create output filename
-        outfname = output_filename(tile, var)
+        outfname = output_filename(tile, startdate, enddate, var)
         #reproject image
         reproject(var, infname, outfname, xmin, xmax, xres, ymin, ymax, yres)
         print xmin, xmax, xres, ymin, ymax, yres, infname, outfname
@@ -42,7 +43,9 @@ def reproject_cams(MOD09band, tile = 'h17v05'):
 
 def main():
     modisband = 'HDF4_EOS:EOS_GRID:"/media/Data/modis/h17v05/MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1'
-    reproject_cams(modisband)
+    startdate = dt.date(2016,1,1)
+    enddate = dt.date(2016, 3, 31)
+    reproject_cams(modisband, startdate, enddate)
 
 if __name__ == "__main__":
     main()

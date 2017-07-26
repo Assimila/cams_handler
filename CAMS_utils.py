@@ -1,10 +1,12 @@
-import gdal
+from osgeo import gdal
 
-def nc_filename(tile, start, end):
-    return  "atmosvar_{tile}_{start}_{end}_fc.nc".format(tile=tile, start=start, end=end)
+def nc_filename(tile, startdate, enddate):
+    return  "atmosvar_{tile}_{startd}_{endd}_fc.nc".format(
+                   tile=tile, startd=startdate, endd=enddate)
 
-def reproj_geotiff_filename(tile, var):
-    fname = '{var}_{tile}_sin_500m.tif'.format(var=var, tile=tile)
+def reproj_geotiff_filename(tile, startdate, enddate, var):
+    fname = '{var}_{tile}_{startd}_{endd}_sin_500m.vrt'.format(
+                   var=var, tile=tile, startd=startdate, endd=enddate)
     return fname
 
 def parameters():
@@ -15,6 +17,7 @@ def get_tile_extent(MOD09band):
     (xmin, xres, xrot, ymax, yrot, yres) = ds.GetGeoTransform()
     xsize = ds.RasterXSize
     ysize = ds.RasterYSize
+    ds = None
     xmax = xmin + xsize * xres
     ymin = ymax + ysize * yres
     return  xmin, xmax, xres, ymin, ymax, yres

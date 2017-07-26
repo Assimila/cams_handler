@@ -1,12 +1,12 @@
-import gdal
+from osgeo import gdal
 import numpy as np
 import datetime as dt
 import CAMS_utils
 
 gdal.UseExceptions()
 
-def filename(tile, var):
-    return CAMS_utils.reproj_geotiff_filename(tile, var)
+def filename(tile, startdate, enddate, var):
+    return CAMS_utils.reproj_geotiff_filename(tile, startdate, enddate, var)
 
 def scaled_data(band):
     ''' read data array from band an apply the scale and offset
@@ -52,35 +52,50 @@ def get_timestamps(ds):
     datetimes = [convertdatetime(int(t)) for t in times]
     return datetimes
 
-def get_var(tile, var):
-    fname = filename(tile, var)
+def get_banddata(ds, step, var):
+    band = ds.GetRasterBand(step)
+    banddata = scaled_data(band)
+    return convert_units(banddata, var)
+
+def get_var(fname, var):
     ds = gdal.Open(fname)
     #loop through bands?
     data = np.zeros((ds.RasterCount, ds.RasterXSize, ds.RasterYSize))
-    for i in xrange(ds.RasterCount):
+    RasterCount = ds.RasterCount
+    ds = None
+    for i in xrange(RasterCount):
+        ds = gdal.Open(fname)
         step = i+1 #gdal get raster band counts from 1, numpy from 0.
+        data[i, ...] = get_banddata(ds, step, var)
         # read data
-        band = ds.GetRasterBand(step)
+        #band = ds.GetRasterBand(step)
         #Data scale and offset
-        banddata = scaled_data(band)
+        #banddata = scaled_data(band)
+        #band = None
         #convert units
-        data[i,...] = convert_units(banddata, var)
-    datetimes = get_timestamps(ds)
+        #data[i,...] = convert_units(banddata, var)
+        #banddata = None
+        datetimes = get_timestamps(ds)
+        ds = None   # Close dataset to free up memory.
     return data, datetimes
 
-def read_cams(tile = 'h17v05'):
+def read_cams(startdate, enddate, tile = 'h17v05'):
     # Open file
     vars = CAMS_utils.parameters()
     data = {}
     times = {}
     for var in vars:
         print var
-        data[var], times[var] = get_var(tile, var)
+        fname = filename(tile, startdate, enddate, var)
+        data[var], times[var] = get_var(fname, var)
     return data, times
 
 
 def main():
-    return read_cams()
+    startdate = dt.date(2016,1,1)
+    enddate = dt.date(2016, 3, 31)
+    tile = 'h17v05'
+    return read_cams(startdate, enddate, tile)
 
 if __name__ == "__main__":
     main()
