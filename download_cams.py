@@ -18,6 +18,15 @@ def latlon_from_sinu(easting, northing):
 
 
 def get_extent(MOD09band):
+    """
+    Get min and maximum latitude and longitude from modis band.
+    returns smallest and largest lat and long co-ordinates from tile.
+    MODIS tile is in sinusoidal co-ords and not square in lat lon coordinates.
+    This function selects the most eastward(westward) of the Upper and lower 
+    right (left) corner coordinates. As MODIS tiles don't cross the equator 
+    this should encompas the tile extent. a margin of 0.1 degrees is added to 
+    ensure the tile extent is encompassed.
+    """
     (xmin, xmax, xres, ymin, ymax, yres) = CAMS_utils.get_tile_extent(MOD09band)
     UL = latlon_from_sinu(xmin, ymax)
     LL = latlon_from_sinu(xmin, ymin)
@@ -71,8 +80,8 @@ def download_cams(start_date, end_date, tile, MOD09band=None, location = None):
     grid = 0.125
     steptype = "fc"
     filename = CAMS_utils.nc_filename(tile, start_date, end_date)
-    time = [0, 12]
-    step = [0,3,6,9]
+    time = [0]
+    step = [9, 12, 15]
     #initialise cams
 
     cams_downloader = cams.Query(var=var, grid=grid, area=location, type=steptype, time=time, step=step, 
@@ -82,12 +91,11 @@ def download_cams(start_date, end_date, tile, MOD09band=None, location = None):
     cams_downloader.download()
 
 def main():
-    start_date = dt.date(2016,1,1)
-    end_date = dt.date(2016,3,31)
+    start_date = dt.date(2016,6,1)
+    end_date = dt.date(2016,6,30)
     #location = [40, -0.0109, 30, -13.0541]
-    tile = 'v17h05'
+    tile = 'h17v05'
     modisband = 'HDF4_EOS:EOS_GRID:"/media/Data/modis/h17v05/MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1'
-    #location = get_extent(modisband)
     return download_cams(start_date, end_date, tile, MOD09band=modisband)
 
 if __name__ == "__main__":
