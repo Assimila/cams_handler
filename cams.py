@@ -170,7 +170,7 @@ or 'an' (analysis). Check type_guide for more information")
               raise ValueError("step is %s, must be equal to 0 for type=analysis" % thestep)
           
           elif self.type == "fc":
-            allowedsteps =  [0, 3, 6, 9, 12]
+            allowedsteps =  [0, 3, 6, 9, 12, 15, 18, 21, 24]
             if thestep not in allowedsteps:
               raise ValueError("step is {}, must be one of {} for type=forecast".format(thestep, allowedsteps))
              
@@ -206,10 +206,10 @@ or 'an' (analysis). Check type_guide for more information")
             'time' : time,
             'date' : date,
             'type' : self.type,
-            'class' : "ei",
+            'class' : "ei",   # This might need to be mc
             'area' : area,
             'format' : self.format,
             'target' : self.filename           
-        })
+        })   #could be an "expver": "0001", variable
         
 
