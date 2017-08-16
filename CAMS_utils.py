@@ -1,21 +1,34 @@
 from osgeo import gdal
 import datetime as dt
+import errno    
+import os
 
-def nc_filename(tile, startdate, enddate):
-    return  "atmosvar_{tile}_{startd}_{endd}_fc.nc".format(
-                   tile=tile, startd=startdate, endd=enddate)
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
-def reproj_geotiff_filename(tile, startdate, enddate, var):
-    fname = '{var}_{tile}_{startd}_{endd}_sin_500m.tif'.format(
-                   var=var, tile=tile, startd=startdate, endd=enddate)
+def nc_filename(tile, year, month, directory='data', checkpath=True):
+    path = os.path.join(directory, str(year))
+    if checkpath:
+        if not os.path.exists(path):
+            mkdir_p(path)
+    filename = os.path.join(path, "atmosvar_{tile}_{year}_{month}_fc.nc".format(
+                                       tile=tile, year=year, month=month))
+    return filename
+
+def reproj_geotiff_filename(tile, year, month, var, directory='data'):
+    fname = '{directory}/{year}/{var}_{tile}_{year}_{month}_sin_500m.tif'.format(
+                   directory=directory, var=var, tile=tile, year=year, month=month)
     return fname
 
-def vrt_filename(tile, date, var):
-    # TODO: need to choose a convention and extract filename from date
-    startdate = dt.date(2016,1,1)
-    enddate = dt.date(2016, 3, 31)
-    fname = '{var}_{tile}_{startd}_{endd}_sin_500m.vrt'.format(
-                   var=var, tile=tile, startd=startdate, endd=enddate)
+def vrt_filename(tile, date, var, directory='data'):
+    fname = '{directory}/{year}/{var}_{tile}_{year}_{month}_sin_500m.vrt'.format(
+                   directory=directory, var=var, tile=tile, year=date.year, month=date.month)
     return fname
 
 def parameters():
