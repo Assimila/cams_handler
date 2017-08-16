@@ -5,8 +5,8 @@ import CAMS_utils
 
 gdal.UseExceptions()
 
-def filename(tile, startdate, enddate, var):
-    return CAMS_utils.reproj_geotiff_filename(tile, startdate, enddate, var)
+def filename(tile, date, var):
+    return CAMS_utils.vrt_filename(tile, date, var)
 
 def scaled_data(band):
     ''' read data array from band an apply the scale and offset
@@ -44,7 +44,20 @@ def convertdatetime(netcdftime):
     hours = dt.timedelta(hours=netcdftime)
     return origin + hours
 
+def date_to_netcdf_time(datetime):
+    ''' Convert a datetime object to the netcdf time in hours since 1900-01-01 00:00:0.0
+    input:
+        date and time in datetime object
+    output:
+        netcdftime date and time in hours since  1900-01-01 00:00:0.0
+    '''
+    origin = dt.datetime(1900,1,1,0,0,0) #netcdf times are hours since this time
+    timedelta = datetime - origin
+    hours = timedelta.total_seconds()/3600
+    return hours
+
 def get_timestamps(ds):
+    ##############Not using this at present...
     times = ds.GetMetadata_Dict()['NETCDF_DIM_time_VALUES']
     # the metadata contains a string of comma separated values.
     # enclosed in curly braces.
@@ -57,8 +70,24 @@ def get_banddata(ds, step, var):
     banddata = scaled_data(band)
     return convert_units(banddata, var)
 
-def get_var(fname, var):
+def get_var(fname, date, var):
     ds = gdal.Open(fname)
+
+    # Get right timestep
+    # Get timestamps from metadata
+    times = ds.GetMetadataItem('NETCDF_DIM_time_VALUES')
+    # Extract times from metadata string (in hours since midnight UTC, 1900,1,1)
+    times = [int(t) for t in times[1:-1].split(",")]
+    date_hours = date_to_netcdf_time(date)
+    # Find data point closest in time to date
+    nrst_index = (np.abs(np.array(times) - date_hours)).argmin()
+    data_time = convertdatetime(times[nrst_index])
+    #get data
+    data = get_banddata(ds, nrst_index, var)
+    #Get uncertanties
+    return data, data_time
+
+'''
     #loop through bands?
     data = np.zeros((ds.RasterCount, ds.RasterXSize, ds.RasterYSize))
     RasterCount = ds.RasterCount
@@ -78,24 +107,34 @@ def get_var(fname, var):
         datetimes = get_timestamps(ds)
         ds = None   # Close dataset to free up memory.
     return data, datetimes
+'''
 
-def read_cams(startdate, enddate, tile = 'h17v05'):
+def read_cams(date, tile = 'h17v05'):
+    '''
+    Input:
+        date - a datetime object with year, month, day, hours, minutes, seconds
+        tile - modis tile reference eg h17v05
+    Output:
+
+    '''
     # Open file
     vars = CAMS_utils.parameters()
     data = {}
     times = {}
     for var in vars:
         print var
-        fname = filename(tile, startdate, enddate, var)
-        data[var], times[var] = get_var(fname, var)
+        fname = filename(tile, date, var) #need to make the file/date thing work...
+        data[var], times[var] = get_var(fname, date, var)
     return data, times
 
 
 def main():
-    startdate = dt.date(2016,1,1)
-    enddate = dt.date(2016, 3, 31)
+    #startdate = dt.date(2016,1,1)
+    #enddate = dt.date(2016, 3, 31)
+    datetime = dt.datetime(2016, 2, 15, 10, 0, 0)
     tile = 'h17v05'
-    return read_cams(startdate, enddate, tile)
+    #return read_cams(startdate, enddate, tile)
+    return read_cams(datetime, tile)
 
 if __name__ == "__main__":
     main()
