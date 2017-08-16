@@ -1,8 +1,16 @@
 import datetime as dt
+import calendar
 import osr
 
 import CAMS_utils
 import cams
+
+def month_year_iter(start_month, start_year, end_month, end_year):
+    ym_start= 12*start_year + start_month - 1
+    ym_end= 12*end_year + end_month - 1
+    for ym in range(ym_start, ym_end+1):
+        y, m = divmod(ym, 12)
+        yield y, m+1
 
 def latlon_from_sinu(easting, northing):
         """Converts from MODIS sinusoidal to lat/long coordinates"""
@@ -79,20 +87,27 @@ def download_cams(start_date, end_date, tile, MOD09band=None, location = None):
         "snowfall")
     grid = 0.125
     steptype = "fc"
-    filename = CAMS_utils.nc_filename(tile, start_date, end_date)
     time = [0]
     step = [9, 12, 15]
     #initialise cams
-
-    cams_downloader = cams.Query(var=var, grid=grid, area=location, type=steptype, time=time, step=step, 
-    start_date=start_date, end_date=end_date, dformat="netcdf",
-    filename=filename, dataset="cams_nrealtime")
-    # download
-    cams_downloader.download()
+    
+    ## TODO! this could be paralellised - this can be done in the mars request
+    for year, month in  month_year_iter( start_date.month, start_date.year, end_date.month, end_date.year ):
+        print year, month
+        first, last = calendar.monthrange(year, month)
+        start = dt.datetime(year, month, first)
+        end = dt.datetime(year, month, last)
+        filename = CAMS_utils.nc_filename(tile, year, month)
+        cams_downloader = cams.Query(var=var, grid=grid, area=location, type=steptype, time=time, step=step, 
+        start_date=start, end_date=end, dformat="netcdf",
+        filename=filename, dataset="cams_nrealtime")
+        # download
+        cams_downloader.download()
+    print 'done'
 
 def main():
-    start_date = dt.date(2016,6,1)
-    end_date = dt.date(2016,6,30)
+    start_date = dt.date(2016,1,1)
+    end_date = dt.date(2016,1,31)
     #location = [40, -0.0109, 30, -13.0541]
     tile = 'h17v05'
     modisband = 'HDF4_EOS:EOS_GRID:"/media/Data/modis/h17v05/MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1'
