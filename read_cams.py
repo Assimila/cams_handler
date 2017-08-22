@@ -105,7 +105,7 @@ def get_var(fname, date, var):
     return data, unc, data_time
 
 
-def read_cams(date, tile, directory):
+def read_cams(date, tile, directory, vars=None):
     """
     Input:
         date - a datetime object with year, month, day, hours, minutes, seconds
@@ -117,7 +117,8 @@ def read_cams(date, tile, directory):
                returned data.
     """
     # Open file
-    vars = CAMS_utils.parameters()
+    if vars is None:
+        vars = CAMS_utils.parameters()
     data = {}
     unc = {}
     times = {}
