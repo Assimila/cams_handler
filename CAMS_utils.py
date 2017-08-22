@@ -21,14 +21,22 @@ def nc_filename(tile, year, month, directory='data', checkpath=True):
                                        tile=tile, year=year, month=month))
     return filename
 
-def reproj_geotiff_filename(tile, year, month, var, directory='data'):
-    fname = '{directory}/{year}/{var}_{tile}_{year}_{month}_sin_500m.tif'.format(
-                   directory=directory, var=var, tile=tile, year=year, month=month)
+def reproj_geotiff_filename(tile, year, month, var, directory='data', checkpath=True):
+    path = os.path.join(directory, str(year))
+    if checkpath:
+        if not os.path.exists(path):
+            mkdir_p(path)
+    fname = os.path.join(path, "{var}_{tile}_{year}_{month}_sin_500m.tif".format(
+                   var=var, tile=tile, year=year, month=month))
     return fname
 
-def vrt_filename(tile, date, var, directory='data'):
-    fname = '{directory}/{year}/{var}_{tile}_{year}_{month}_sin_500m.vrt'.format(
-                   directory=directory, var=var, tile=tile, year=date.year, month=date.month)
+def vrt_filename(tile, year, month, var, directory='data', checkpath=True):
+    path = os.path.join(directory, str(year))
+    if checkpath:
+        if not os.path.exists(path):
+            mkdir_p(path)
+    fname = os.path.join(path, "{var}_{tile}_{year}_{month}_sin_500m.vrt".format(
+                   var=var, tile=tile, year=year, month=month))
     return fname
 
 def parameters():

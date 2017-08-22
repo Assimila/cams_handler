@@ -109,7 +109,7 @@ def get_var(fname, date, var):
     return data, datetimes
 '''
 
-def read_cams(date, tile = 'h17v05'):
+def read_cams(date, tile, directory):
     '''
     Input:
         date - a datetime object with year, month, day, hours, minutes, seconds
@@ -123,7 +123,7 @@ def read_cams(date, tile = 'h17v05'):
     times = {}
     for var in vars:
         print var
-        fname = filename(tile, date, var) #need to make the file/date thing work...
+        fname = CAMS_utils.vrt_filename(tile, date.year, date.month, var, directory) #need to make the file/date thing work...
         data[var], times[var] = get_var(fname, date, var)
     return data, times
 
@@ -133,8 +133,9 @@ def main():
     #enddate = dt.date(2016, 3, 31)
     datetime = dt.datetime(2016, 2, 15, 10, 0, 0)
     tile = 'h17v05'
+    directory = "data"
     #return read_cams(startdate, enddate, tile)
-    return read_cams(datetime, tile)
+    return read_cams(datetime, tile, directory)
 
 if __name__ == "__main__":
     main()

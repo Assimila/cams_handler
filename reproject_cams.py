@@ -5,16 +5,12 @@ import datetime as dt
 
 gdal.UseExceptions()
 
-def input_filename(tile, start, end):
-    return  CAMS_utils.nc_filename(tile, start, end)
-
-def output_filename(tile, start, end, var):
-    return CAMS_utils.reproj_geotiff_filename(tile, start, end, var)
 
 def get_tile_extent(MOD09band):
-    return  CAMS_utils.get_tile_extent(MOD09band)
+    return CAMS_utils.get_tile_extent(MOD09band)
 
-def reproject(var, infname, outfname, xmin, xmax, xres, ymin, ymax, yres):
+
+def reproject(var, infname, outfname, xmin, xmax, ymin, ymax):
     args = ['./reprojectCAMS.sh', '-i', infname, 
             '-o', outfname, 
             '-p', var, 
@@ -25,27 +21,31 @@ def reproject(var, infname, outfname, xmin, xmax, xres, ymin, ymax, yres):
     print args
     subprocess.call(args)
 
-def reproject_cams(MOD09band, startdate, enddate, tile = 'h17v05'):
+
+def reproject_cams(MOD09band, year, month, tile, directory):
     #Get extent and resolution of modis file
     xmin, xmax, xres, ymin, ymax, yres = get_tile_extent(MOD09band)
     # Loop through variables
     vars =  CAMS_utils.parameters()
     for var in vars:
         #Get input file 
-        infname = input_filename(tile, startdate, enddate)
+        infname = CAMS_utils.nc_filename(tile, year, month,
+                                 directory=directory, checkpath = False)
         #create output filename
-        outfname = output_filename(tile, startdate, enddate, var)
+        print directory
+        outfname = CAMS_utils.vrt_filename(tile, year, month, var,
+                                   directory=directory)
         #reproject image
-        reproject(var, infname, outfname, xmin, xmax, xres, ymin, ymax, yres)
-        print xmin, xmax, xres, ymin, ymax, yres, infname, outfname
-        
+        reproject(var, infname, outfname, xmin, xmax, ymin, ymax)
 
 
 def main():
     modisband = 'HDF4_EOS:EOS_GRID:"/media/Data/modis/h17v05/MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1'
-    startdate = dt.date(2016,1,1)
-    enddate = dt.date(2016, 3, 31)
-    reproject_cams(modisband, startdate, enddate)
+    year = 2016
+    month = 1
+    tile = 'h17v05'
+    directory = "data"
+    reproject_cams(modisband, year, month, tile, directory)
 
 if __name__ == "__main__":
     main()
