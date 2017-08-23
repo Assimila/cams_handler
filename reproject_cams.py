@@ -1,13 +1,8 @@
 import gdal
 import subprocess
 import CAMS_utils
-import datetime as dt
 
 gdal.UseExceptions()
-
-
-def get_tile_extent(MOD09band):
-    return CAMS_utils.get_tile_extent(MOD09band)
 
 
 def reproject(var, infname, outfname, xmin, xmax, ymin, ymax):
@@ -24,7 +19,7 @@ def reproject(var, infname, outfname, xmin, xmax, ymin, ymax):
 
 def reproject_cams(MOD09band, year, month, tile, directory):
     #Get extent and resolution of modis file
-    xmin, xmax, xres, ymin, ymax, yres = get_tile_extent(MOD09band)
+    xmin, xmax, xres, ymin, ymax, yres = CAMS_utils.get_tile_extent(MOD09band)
     # Loop through variables
     vars =  CAMS_utils.parameters()
     for var in vars:
