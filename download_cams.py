@@ -3,6 +3,7 @@ import calendar
 import osr
 
 import CAMS_utils
+from reproject_cams import reproject_cams
 import cams
 
 
@@ -31,11 +32,14 @@ def get_extent(MOD09band):
     """
     Get min and maximum latitude and longitude from modis band.
     returns smallest and largest lat and long co-ordinates from tile.
-    MODIS tile is in sinusoidal co-ords and not square in lat lon coordinates.
+    MODIS tile is in sinusoidal co-ordinates and not square in lat lon coordinates.
     This function selects the most eastward(westward) of the Upper and lower 
     right (left) corner coordinates. As MODIS tiles don't cross the equator 
-    this should encompas the tile extent. a margin of 0.1 degrees is added to 
+    this should encompass the tile extent. a margin of 0.1 degrees is added to
     ensure the tile extent is encompassed.
+    Input:
+        MOD09band : (string) modis band in format e.g.
+        'HDF4_EOS:EOS_GRID:"MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1'
     """
     (xmin, xmax, xres, ymin, ymax, yres) = CAMS_utils.get_tile_extent(MOD09band)
     UL = latlon_from_sinu(xmin, ymax)
@@ -52,7 +56,7 @@ def get_extent(MOD09band):
     return [maxlat, maxlon, minlat, minlon]
 
 
-def download_cams(start_date, end_date, tile, extent, reproject=False, timesteps = [9,12,15]):
+def download_cams(start_date, end_date, tile, extent, directory, reproject=False, timesteps=(9, 12, 15)):
     """
     Download ECMWF CAMS data between startdate and enddate inclusive.
     The data will cover a tile that can either be provided via the location
@@ -62,63 +66,69 @@ def download_cams(start_date, end_date, tile, extent, reproject=False, timesteps
 
     Parameters
     ----------
-    startdate : a datetime.date object 
+    start_date : a datetime.date object
         the first date of data to be downloaded
-    enddate : a datetime.date object the last date of data to be downloaded
+
+    end_date : a datetime.date object the last date of data to be downloaded
+
+    tile : (string) reference to modis tile, e.g. h17v05. Only used in file names.
+
     extent : Either an example modis band OR the corner coordinates of the tile in lat/lon projection:
-        An example modis band (e.g. 'HDF4_EOS:EOS_GRID:"MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1')
+        An example modis band (e.g.
+        'HDF4_EOS:EOS_GRID:"MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1')
             OR
         [N (top), E (right), S (bottom), W (left)] elements of tile in lat/lon projection.
 
-    If given, the MOD09band (e.g. 'HDF4_EOS:EOS_GRID:"MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1')
-    will be used to extract the required lat-lon extent. Otherwise the lat-lon extent must be provided.
+    directory : (string) location to store data
+
+    reproject : (=False) (bool) if reproject == True a VRT file will be created that includes the reprojection
+                on to the MODIS grid. The extent variable must be a MODIS band if reproject == True.
+
+    timesteps : (=(9, 12, 15)) the forcast timesteps in UTC. Available steps are every 3 hours from 0 to 21.
+                Default steps are chosen to be near sentinel overpass times.
     """
     # get extents
     try:
         location = get_extent(extent)
     except RuntimeError:
-        pass
+        location = extent
 
     # set parameters
-
-    # TODO better to use variable list in CAMS_utils - modify cams.py for this to work?
-    var = ("GEMS total column ozone",
-           "total aerosol optical depth at 550 nm",
-           "total column water vapour",
-           "snowfall")
+    var = CAMS_utils.parameters()
     grid = 0.125
     steptype = "fc"
     time = [0]
-    # initialise cams
 
-    # TODO! this could be paralellised - this can be done in the mars request but not in python.
+    # TODO! this could be paralellised. (This can be done in the mars request on the command line but not in python.)
     for year, month in month_year_iter(start_date.month, start_date.year, end_date.month, end_date.year):
         print year, month
         day, ndays = calendar.monthrange(year, month)
         start = dt.datetime(year, month, 1)
         end = dt.datetime(year, month, ndays)
-        filename = CAMS_utils.nc_filename(tile, year, month)
+        # initialise cams
+        filename = CAMS_utils.nc_filename(tile, year, month, directory)
         cams_downloader = cams.Query(var=var, grid=grid, area=location,
                                      type=steptype, time=time,
                                      step=timesteps,
                                      start_date=start, end_date=end,
-                                     dformat="netcdf",filename=filename,
+                                     dformat="netcdf", filename=filename,
                                      dataset="cams_nrealtime")
         # download
         cams_downloader.download()
         if reproject:
-            reproject_cams(modisband, year, month, tile, directory)
-
+            reproject_cams(extent, year, month, tile, directory)
     print 'done'
 
 
 def main():
-    start_date = dt.date(2015, 1, 1)
-    end_date = dt.date(2015, 12, 31)
-    # location = [40, -0.0109, 30, -13.0541]
+    start_date = dt.date(2016, 1, 1)
+    end_date = dt.date(2016, 12, 31)
     tile = 'h17v05'
+    directory = 'data'
     modisband = 'HDF4_EOS:EOS_GRID:"/media/Data/modis/h17v05/MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1'
-    return download_cams(start_date, end_date, tile, modisband, reproject=True, timesteps=[0,3,6,9,12,15,18,21,24])
+    # extent = [40, -0.0109, 30, -13.0541]  #Could be passed instead of modis band (only if reproject=False)
+    timesteps = [0, 3, 6, 9, 12, 15, 18, 21]
+    return download_cams(start_date, end_date, tile, modisband, directory, reproject=True, timesteps=timesteps)
 
 
 if __name__ == "__main__":
