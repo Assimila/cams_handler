@@ -7,12 +7,12 @@ gdal.UseExceptions()
 
 
 def scaled_data(band):
-    ''' read data array from band an apply the scale and offset
+    """ read data array from band an apply the scale and offset
     input:
-        band,  an osgeo.gdal.Band
+        band : an osgeo.gdal.Band
     returns:
-        data, a numpy array of the correctly scaled band data.
-    '''
+        data : a numpy array of the correctly scaled band data.
+    """
     metadata = band.GetMetadata()
     scale = float(metadata['scale_factor'])
     offset = float(metadata['add_offset'])
@@ -28,19 +28,19 @@ def convert_units(data, var):
         # source in kg m-2, want in atm-cm
         data = data/2.1415e-2
     # All other variables returned unchanged.
-    # AOD550 is unitless. sf is in m of water equivilent
+    # AOD550 is unitless. sf is in m of water equivalent
     return data
 
 
 def convertdatetime(netcdftime):
-    ''' Convert the netcdf time from hours since 1900-01-01 00:00:0.0
+    """ Convert the netcdf time from hours since 1900-01-01 00:00:0.0
     to a datetime object
     input:
         netcdftime date and time in hours since  1900-01-01 00:00:0.0
     output:
         date and time in datetime object
-    '''
-    origin = dt.datetime(1900,1,1,0,0,0) #netcdf times are hours since this time
+    """
+    origin = dt.datetime(1900, 1, 1, 0, 0, 0)  # Netcdf times are hours since this time
     hours = dt.timedelta(hours=netcdftime)
     return origin + hours
 
@@ -52,20 +52,10 @@ def date_to_netcdf_time(datetime):
     output:
         netcdftime date and time in hours since  1900-01-01 00:00:0.0
     """
-    origin = dt.datetime(1900,1,1,0,0,0) #netcdf times are hours since this time
+    origin = dt.datetime(1900, 1, 1, 0, 0, 0)  # Netcdf times are hours since this time
     timedelta = datetime - origin
     hours = timedelta.total_seconds()/3600
     return hours
-
-
-def get_timestamps(ds):
-    ##############Not using this at present...
-    times = ds.GetMetadata_Dict()['NETCDF_DIM_time_VALUES']
-    # the metadata contains a string of comma separated values.
-    # enclosed in curly braces.
-    times = times[1:-1].split(',')
-    datetimes = [convertdatetime(int(t)) for t in times]
-    return datetimes
 
 
 def get_banddata(ds, step, var):
@@ -105,26 +95,29 @@ def get_var(fname, date, var):
     return data, unc, data_time
 
 
-def read_cams(date, tile, directory, vars=None):
+def read_cams(date, tile, directory, variables=None):
     """
     Input:
-        date - a datetime object with year, month, day, hours, minutes, seconds
-        tile - modis tile reference eg h17v05
+        date : a datetime object with year, month, day, hours, minutes, seconds
+        tile : modis tile reference eg h17v05
     Output:
         data: a dictionary of var:data pairs. Data is a 2D array.
         unc: a dictionary of var:unc paris. Uncertainty is the uncertainty in data.
-        times: a dictionary of var:time pairs. time is a datetime object with the date and time of the
+        times : a dictionary of var:time pairs. time is a datetime object with the date and time of the
                returned data.
+        directory : (string) location of data
+        variables : (=None) Parameters to read in e.g. [tcwv, 'gtco3', 'aod550', 'sf'].
+                    If not specified the default list will be read from cams_utils.
     """
     # Open file
-    if vars is None:
-        vars = CAMS_utils.parameters()
+    if variables is None:
+        variabless = CAMS_utils.parameters()
     data = {}
     unc = {}
     times = {}
-    for var in vars:
+    for var in variables:
         print var
-        fname = CAMS_utils.vrt_filename(tile, date.year, date.month, var, directory) #need to make the file/date thing work...
+        fname = CAMS_utils.vrt_filename(tile, date.year, date.month, var, directory)
         data[var], times[var], unc[var] = get_var(fname, date, var)
     return data, unc, times
 
