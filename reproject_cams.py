@@ -18,19 +18,19 @@ def reproject(var, infname, outfname, xmin, xmax, ymin, ymax):
 
 
 def reproject_cams(MOD09band, year, month, tile, directory):
-    #Get extent and resolution of modis file
+    # Get extent and resolution of modis file
     xmin, xmax, xres, ymin, ymax, yres = CAMS_utils.get_tile_extent(MOD09band)
     # Loop through variables
-    vars =  CAMS_utils.parameters()
-    for var in vars:
-        #Get input file 
+    variables = CAMS_utils.parameters()
+    for var in variables:
+        # Get input file
         infname = CAMS_utils.nc_filename(tile, year, month,
-                                 directory=directory, checkpath = False)
-        #create output filename
+                                         directory=directory, checkpath=False)
+        # Create output filename
         print directory
         outfname = CAMS_utils.vrt_filename(tile, year, month, var,
-                                   directory=directory)
-        #reproject image
+                                           directory=directory)
+        # Reproject image
         reproject(var, infname, outfname, xmin, xmax, ymin, ymax)
 
 
@@ -41,6 +41,7 @@ def main():
     tile = 'h17v05'
     directory = "data"
     reproject_cams(modisband, year, month, tile, directory)
+
 
 if __name__ == "__main__":
     main()

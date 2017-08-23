@@ -1,7 +1,7 @@
 from osgeo import gdal
-import datetime as dt
 import errno    
 import os
+
 
 def mkdir_p(path):
     try:
@@ -12,6 +12,7 @@ def mkdir_p(path):
         else:
             raise
 
+
 def nc_filename(tile, year, month, directory='data', checkpath=True):
     path = os.path.join(directory, str(year))
     if checkpath:
@@ -20,6 +21,7 @@ def nc_filename(tile, year, month, directory='data', checkpath=True):
     filename = os.path.join(path, "atmosvar_{tile}_{year}_{month}_fc.nc".format(
                                        tile=tile, year=year, month=month))
     return filename
+
 
 def reproj_geotiff_filename(tile, year, month, var, directory='data', checkpath=True):
     path = os.path.join(directory, str(year))
@@ -30,6 +32,7 @@ def reproj_geotiff_filename(tile, year, month, var, directory='data', checkpath=
                    var=var, tile=tile, year=year, month=month))
     return fname
 
+
 def vrt_filename(tile, year, month, var, directory='data', checkpath=True):
     path = os.path.join(directory, str(year))
     if checkpath:
@@ -39,15 +42,17 @@ def vrt_filename(tile, year, month, var, directory='data', checkpath=True):
                    var=var, tile=tile, year=year, month=month))
     return fname
 
+
 def parameters():
     return ['tcwv', 'gtco3', 'aod550', 'sf']
+
 
 def get_tile_extent(MOD09band):
     ds = gdal.Open(MOD09band)
     (xmin, xres, xrot, ymax, yrot, yres) = ds.GetGeoTransform()
     xsize = ds.RasterXSize
     ysize = ds.RasterYSize
-    ds = None
+    ds = None  # Close dataset.
     xmax = xmin + xsize * xres
     ymin = ymax + ysize * yres
-    return  xmin, xmax, xres, ymin, ymax, yres
+    return xmin, xmax, xres, ymin, ymax, yres

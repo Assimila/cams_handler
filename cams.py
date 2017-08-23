@@ -20,21 +20,21 @@ LIMITATIONS
 
 from ecmwfapi import ECMWFDataServer
 
+
 class Query:
     """
     Define the parameters of a call to the ERA Interim data server.
 
     """
-    def __init__(self, var, grid, area, type, time, step,
-    start_date, end_date, dformat="netcdf",
-    filename="/media/Data/cams.nc", dataset="cams_nrealtime"):
-
-        "This object defines the parameters of the required ERA Interim data"
+    def __init__(self, var, grid, area, mtype, time, step,
+                 start_date, end_date, dformat="netcdf",
+                 filename="/media/Data/cams.nc", dataset="cams_nrealtime"):
+        """This object defines the parameters of the required ERA Interim data"""
 
         self.var = var
         self.grid = grid
         self.area = area
-        self.type = type
+        self.type = mtype
         self.filename = filename
         self.start_date = start_date
         self.end_date = end_date
@@ -44,16 +44,11 @@ class Query:
         self.dataset = dataset
 
         self.available_variables = {
-        "gtco3":"206.210",
-        "aod550":"207.210",
-        "tcwv":"137.128",
-        "sf":"144.128"
+            "gtco3": "206.210",
+            "aod550": "207.210",
+            "tcwv": "137.128",
+            "sf": "144.128"
         }
-#        self.area_guide = "[N (top), E (right), S (bottom), W (left)]"
-#        self.type_guide = "Type is 'an' for model re-analysis (output at\
-#= 00Z, 6Z, 12Z, 18Z). Type is 'fc' for forecast (output at = 3Z 6Z 9Z \
-#12Z, 15Z 18Z 21Z 24Z)"
-
 
     def download(self):
         """Check defined parameters and download the data"""
@@ -75,8 +70,8 @@ class Query:
         elif self.end_date == self.start_date:
             date = self.start_date.strftime("%Y-%m-%d")
         else:
-            date = self.start_date.strftime("%Y-%m-%d")+"/to/"+\
-            self.end_date.strftime("%Y-%m-%d")
+            date = self.start_date.strftime("%Y-%m-%d") + "/to/" + \
+                   self.end_date.strftime("%Y-%m-%d")
 
         # Prepare area
         if self.area[0] < self.area[2]:
@@ -96,35 +91,31 @@ one of the following: 3, 2.5, 2, 1.5, 1.125, 1, 0.75, 0.5, 0.25, 0.125")
         else:
             grid = "%s/%s" % (self.grid, self.grid)
 
-         # check we have been provided with the correct type
+        # Check we have been provided with the correct type
         if self.type != "an" and self.type != "fc":
             raise ValueError("Incorrect type. Must be either 'fc' (forecast) \
 or 'an' (analysis). Check type_guide for more information")
 
-
-        # If step or time have been passed as single integers, convert them
-        # into lists.
+        # If step or time have been passed as single integers, convert them into lists.
         if isinstance(self.step, int):
             self.step = [self.step]
         if isinstance(self.time, int):
             self.time = [self.time]
 
-        # we need to overwrite the defaults for analysis if only type="an" 
-        # is passed in
-        if self.type == "an" and self.time == [0,12]:
-            self.time = [0, 6, 12, 18] # default analysis times
+        # We need to overwrite the defaults for analysis if only type="an" is passed in
+        if self.type == "an" and self.time == [0, 12]:
+            self.time = [0, 6, 12, 18]  # Default analysis times
 
-        if self.type == "an" and self.step == [3,6,9,12]:
-            self.step = [0] # default analysis step
+        if self.type == "an" and self.step == [3, 6, 9, 12]:
+            self.step = [0]  # Default analysis step
 
-
-        # check we have correct times and steps that the ecmwf use
+        # Check we have correct times and steps that the ecmwf use
         for thestep in self.step:
             if self.type == "an":
                 if thestep not in [0]:
                     raise ValueError("step is {}, must be equal to 0 for type=analysis".format(thestep))
             elif self.type == "fc":
-                allowedsteps =  [0, 3, 6, 9, 12, 15, 18, 21, 24]
+                allowedsteps = [0, 3, 6, 9, 12, 15, 18, 21, 24]
                 if thestep not in allowedsteps:
                     raise ValueError("step is {}, must be one of {} for type=forecast".format(thestep, allowedsteps))
         for thetime in self.time:
@@ -148,18 +139,18 @@ or 'an' (analysis). Check type_guide for more information")
         server = ECMWFDataServer()
 
         server.retrieve({
-            'stream' : "oper",
-            'levtype' : "sfc",
-            'param' : param,
-            'dataset' : self.dataset,
-            'step' : step,
-            'grid' : grid,
-            'resol' : "av",
-            'time' : time,
-            'date' : date,
-            'type' : self.type,
-            'class' : "ei",   # This might need to be mc
-            'area' : area,
-            'format' : self.format,
-            'target' : self.filename
-            })   #could be an "expver": "0001", variable
+            'stream': "oper",
+            'levtype': "sfc",
+            'param': param,
+            'dataset': self.dataset,
+            'step': step,
+            'grid': grid,
+            'resol': "av",
+            'time': time,
+            'date': date,
+            'type': self.type,
+            'class': "ei",  # This might need to be mc
+            'area': area,
+            'format': self.format,
+            'target': self.filename
+        })  # Could be an "expver": "0001", variable

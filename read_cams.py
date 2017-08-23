@@ -16,7 +16,7 @@ def scaled_data(band):
     metadata = band.GetMetadata()
     scale = float(metadata['scale_factor'])
     offset = float(metadata['add_offset'])
-    return (band.ReadAsArray() * scale + offset)
+    data = band.ReadAsArray() * scale + offset
     return data
 
 
@@ -88,9 +88,9 @@ def get_var(fname, date, var):
     # Find data point closest in time to date
     nrst_index = (np.abs(np.array(times) - date_hours)).argmin()
     data_time = convertdatetime(times[nrst_index])
-    #get data
+    # Get data
     data = get_banddata(ds, nrst_index, var)
-    #Get uncertanties
+    # Get uncertanties
     unc = uncertainty(data, var)
     return data, unc, data_time
 
@@ -111,7 +111,7 @@ def read_cams(date, tile, directory, variables=None):
     """
     # Open file
     if variables is None:
-        variabless = CAMS_utils.parameters()
+        variables = CAMS_utils.parameters()
     data = {}
     unc = {}
     times = {}
