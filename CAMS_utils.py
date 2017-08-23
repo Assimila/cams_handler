@@ -14,7 +14,7 @@ def mkdir_p(path):
 
 
 def nc_filename(tile, year, month, directory='data', checkpath=True):
-    path = os.path.join(directory, str(year))
+    path = os.path.join(directory, 'CAMS', str(year))
     if checkpath:
         if not os.path.exists(path):
             mkdir_p(path)
@@ -24,7 +24,7 @@ def nc_filename(tile, year, month, directory='data', checkpath=True):
 
 
 def reproj_geotiff_filename(tile, year, month, var, directory='data', checkpath=True):
-    path = os.path.join(directory, str(year))
+    path = os.path.join(directory, 'CAMS', str(year))
     if checkpath:
         if not os.path.exists(path):
             mkdir_p(path)
@@ -34,7 +34,7 @@ def reproj_geotiff_filename(tile, year, month, var, directory='data', checkpath=
 
 
 def vrt_filename(tile, year, month, var, directory='data', checkpath=True):
-    path = os.path.join(directory, str(year))
+    path = os.path.join(directory, 'CAMS', str(year))
     if checkpath:
         if not os.path.exists(path):
             mkdir_p(path)
