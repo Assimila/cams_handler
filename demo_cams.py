@@ -22,4 +22,4 @@ download_cams(start_date, end_date, tile, master, directory, reproject=True,  ti
 
 # Read in
 datetime = dt.datetime(2016, 2, 15, 10, 0, 0)
-data, uncertaint, times = read_cams(datetime, tile, directory)
+data, uncertainty, times = read_cams(datetime, tile, directory)
