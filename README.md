@@ -6,6 +6,8 @@ read_cams.py: Read in reprojected CAMS data (in VRT format) and return data and 
 
 demo_cams.py: Demonstration of how to run.
 
+read_cams returns finds the time-step closest to the time you input and returns the data at that time-step along with uncertainty (currently fixed at 10%)  and the time-stamp that matches the data.
+
 Dependancies:
 Requires gdal with netcdf support.
 
