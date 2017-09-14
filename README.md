@@ -21,7 +21,7 @@ This isn't necessary if you just want to read in the already downloaded data.
   
 ## Downloading data
 
-# Example usage
+### Example usage
 ```python
 import datetime as dt
 from download_cams import download_cams
