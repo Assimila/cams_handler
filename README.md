@@ -5,8 +5,11 @@ cams_handler can be used to download a subset of variables from the CAMS near re
 
   read_cams.py: Read in reprojected CAMS data (in VRT format) and return data and uncertainty.
 
-Also available if you have chosen not to reproject data when downloading is 
+Also available if you have chosen not to reproject data when downloading or if the data files have been moved is
+
   reproject_cams.py: Reproject downloaded CAMS data onto MODIS sinusoidal grid)
+
+If the data files have been moved the reprojected VRT files need to be remade using reproject_cams.
 
 ## Dependancies:
 
@@ -24,8 +27,7 @@ This isn't necessary if you just want to read in the already downloaded data.
 ### Example usage
 ```python
 import datetime as dt
-from download_cams import download_cams
-from read_cams import read_cams
+from cams_handler import download_cams
 
 # Download and reproject
 
@@ -34,7 +36,7 @@ from read_cams import read_cams
 start_date = dt.date(2016, 1, 1)
 end_date = dt.date(2016, 8, 31)
 tile = 'h17v05'  # This is just used to label the files
-directory = 'data'  # Location to store the data
+directory = '/media/Data/h17v05/data'  # Location to store the data. Use absolute path.
 # Example modis file. The required extent will be extracted from this:
 modis_file = "/media/Data/modis/h17v05/MOD09GA.A2016009.h17v05.006.2016012053256.hdf"
 master = 'HDF4_EOS:EOS_GRID:{}:MODIS_Grid_500m_2D:sur_refl_b02_1'.format(modis_file)
@@ -42,7 +44,7 @@ master = 'HDF4_EOS:EOS_GRID:{}:MODIS_Grid_500m_2D:sur_refl_b02_1'.format(modis_f
 # e.g. master = [40, -0.0109, 30, -13.0541] (only if reproject = False)
 timesteps = [9, 12, 15]  # (Optional) Time steps (in UTC) to download
 
-download_cams(start_date, end_date, tile, master, directory, reproject=True,  timesteps=timesteps)
+download_cams.download_cams(start_date, end_date, tile, master, directory, reproject=True,  timesteps=timesteps)
 ```
 ### More detailed description of input and output
 ```python
@@ -61,7 +63,7 @@ def download_cams(start_date, end_date, tile, extent, directory, reproject=False
                 'HDF4_EOS:EOS_GRID:"MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1')
                     OR
                 [N (top), E (right), S (bottom), W (left)] elements of tile in lat/lon projection.
-        directory : (string) location to store data
+        directory : (string) location to store data. Must be absolute path
         reproject : (=False) (bool) if reproject == True a VRT file will be created that includes the reprojection
                     on to the MODIS grid. The extent variable must be a MODIS band if reproject == True.
         timesteps : (=(9, 12, 15)) the forcast timesteps in UTC. Available steps are every 3 hours from 0 to 21.
@@ -76,11 +78,11 @@ read_cams finds the time-step closest to the time you input and returns the data
 
 ```python
 import datetime as dt
-from read_cams import read_cams
+from cams_handler import read_cams
 
 datetime = dt.datetime(2016, 2, 15, 10, 0, 0)
 tile = 'h17v05'  # This is just used to label the files
-directory = 'data'  # Location to store the data
+directory = '/media/data/h17v05'  # Location to store the data
 
 data, uncertainty, times = read_cams(datetime, tile, directory)
 ```
