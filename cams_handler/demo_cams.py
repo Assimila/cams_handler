@@ -1,6 +1,6 @@
 import datetime as dt
-from download_cams import download_cams
-from read_cams import read_cams
+from cams_handler import download_cams
+from cams_handler import read_cams
 
 # Download and reproject
 
@@ -17,9 +17,9 @@ master = 'HDF4_EOS:EOS_GRID:{}:MODIS_Grid_500m_2D:sur_refl_b02_1'.format(modis_f
 # e.g. master = [40, -0.0109, 30, -13.0541] (only if reproject = False)
 timesteps = [9, 12, 15]  # (Optional) Time steps (in UTC) to download
 
-download_cams(start_date, end_date, tile, master, directory, reproject=True,  timesteps=timesteps)
+download_cams.download_cams(start_date, end_date, tile, master, directory, reproject=True,  timesteps=timesteps)
 
 
 # Read in
 datetime = dt.datetime(2016, 2, 15, 10, 0, 0)
-data, uncertainty, times = read_cams(datetime, tile, directory)
+data, uncertainty, times = read_cams.read_cams(datetime, tile, directory)

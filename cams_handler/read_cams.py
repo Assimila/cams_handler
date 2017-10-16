@@ -118,6 +118,7 @@ def read_cams(date, tile, directory, variables=None):
     for var in variables:
         print var
         fname = CAMS_utils.vrt_filename(tile, date.year, date.month, var, directory)
+        print fname
         data[var], times[var], unc[var] = get_var(fname, date, var)
     return data, unc, times
 
@@ -125,7 +126,7 @@ def read_cams(date, tile, directory, variables=None):
 def main():
     datetime = dt.datetime(2016, 2, 15, 10, 0, 0)
     tile = 'h17v05'
-    directory = "data"
+    directory = "/home/nicola/python/eoldas/cams_handler/data/h17v05"
     return read_cams(datetime, tile, directory)
 
 

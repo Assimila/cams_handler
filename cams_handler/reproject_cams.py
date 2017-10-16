@@ -38,7 +38,7 @@ def main():
     modisband = 'HDF4_EOS:EOS_GRID:"/media/Data/modis/h17v05/MOD09GA.A2016009.h17v05.006.2016012053256.hdf":MODIS_Grid_500m_2D:sur_refl_b02_1'
     year = 2016
     month = 1
-    tile = 'h17v05'
+    tile = '/home/nicola/python/eoldas/cams_handler/data/h17v05'
     directory = "data"
     reproject_cams(modisband, year, month, tile, directory)
 
