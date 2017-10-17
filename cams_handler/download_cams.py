@@ -74,7 +74,9 @@ def download_cams(start_date, end_date, tile, extent, directory, reproject=False
     # Get extents
     try:
         location = get_extent(extent)
-    except RuntimeError:
+    except RuntimeError as e:
+        if isinstance(extent, str):
+            raise('cannot open {}'.format(extent), e)
         location = extent
 
     # Set parameters
